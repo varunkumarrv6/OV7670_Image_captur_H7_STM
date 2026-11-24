@@ -1,0 +1,14 @@
+# STM32CubeIDE build output
+Debug/
+Release/
+*.o
+*.d
+*.su
+*.cyclo
+*.elf
+*.map
+*.list
+# viewer output
+frame.bin
+frame.png
+__pycache__/
