@@ -11,21 +11,19 @@ Editable source of the infographic: [images/ov7670-infographic.drawio](images/ov
 
 ## Results
 
-| Earlier capture: right geometry, wrong colours | Later capture: colours after tuning |
+| Earlier capture: right geometry, wrong colours | Live capture after colour tuning |
 |---|---|
-| ![Early capture, false colours](images/capture-early-wrong-colours.png) | ![Capture after colour tuning](images/capture-tuned-colours.png) |
-| 320×240, **153,600 bytes** (photo of the screen) | Decoded 319×240, **638 bytes/line, 153,120 bytes**, 115200 baud |
+| ![Early capture, false colours](images/capture-early-wrong-colours.png) | ![Live capture with the board and camera](images/setup-live-capture.png) |
+| 320×240, **153,600 bytes** (photo of the screen) | Viewer shows 319×240, **638 bytes/line, 153,120 bytes**, 115200 baud. Firmware log: `INFO done=1 words=38280 bytes=153120 dcmi_err=0x0` on 4 captures in a row |
 
-Both images are rotated because of how the camera was held; the viewer has `--rot` for this.
-The second capture is **480 bytes short** of a full frame (2 bytes missing per line) and has a stripe in the first columns. Full frames do occur, but not every time.
+The early image is rotated because of how the camera was held; the viewer has `--rot` for this.
+The recent captures are consistently **480 bytes short** of a full frame (2 bytes missing per line) and have a stripe in the first columns, even though the DCMI reports no error (`dcmi_err=0x0`).
 
 ## Hardware setup
 
-| | |
-|---|---|
-| ![Setup](images/setup-1.png) | ![Setup, second view](images/setup-2.png) |
+![Setup](images/setup-1.png)
 
-NUCLEO-H755ZI-Q, OV7670 module on ~15–20 cm jumper wires, small breadboard for the PCLK series resistor.
+NUCLEO-H755ZI-Q, OV7670 module on ~15–20 cm jumper wires, small breadboard for the PCLK series resistor. The live-capture photo under [Results](#results) shows the same setup running.
 
 | Item | Detail |
 |------|--------|
@@ -92,7 +90,7 @@ The viewer decodes line by line (bytes per line = total / 240), so an odd line l
 The camera drives PCLK with fast edges. On a 15–20 cm jumper wire the edge reflects off the high-impedance DCMI input and rings, and the 16 MHz XCLK wire next to it adds crosstalk. The DCMI has no input glitch filter, so every threshold crossing is counted as a clock edge. A resistor at the **source** end, together with the driver's output impedance, roughly matches the wire's impedance, so the reflection is absorbed when it gets back to the camera. It also slows the edge a little, which reduces crosstalk. 47–100 Ω is the usual range: too small and the ringing stays; too large and the edge becomes too slow for the data timing.
 
 ## Limitations
-- **Line length is not always 640 bytes.** One capture had 638 B/line (153,120 B), probably HREF/VSYNC signal integrity or the horizontal timing. The viewer hides this; the source is not fixed.
+- **Line length is not always 640 bytes.** Recent captures give 638 B/line (153,120 B) every time with `dcmi_err=0x0`, so no overrun is reported; the bytes are probably missing before the DCMI rather than dropped by the DMA (not proven). Possible causes: HREF timing/window registers or HREF signal integrity. The viewer hides this; the source is not fixed.
 - **PCLK numbers don't add up yet.** With `CLKRC = 0x01` and a 16 MHz XCLK, PCLK should be about 8 MHz. The filtered count was 4.5 MHz and the unfiltered count 13.6 MHz. Not explained yet.
 - **Slow transfer:** 153,600 B × 10 bits / 115200 baud ≈ 13 s per frame. This is a still-image setup.
 - **Jumper-wire build:** the resistor value suits this wiring and may not carry over to another board.
@@ -115,7 +113,7 @@ The camera drives PCLK with fast edges. On a 15–20 cm jumper wire the edge ref
 ```
 firmware/ov7670_h7_nucleo/   STM32CubeIDE dual-core project (.ioc, CM7 = camera code, CM4 = default, HAL drivers)
 viewer/ov7670.py             PC viewer and raw-data analyser
-images/                      infographic (.png + .drawio), setup photos, captures
+images/                      infographic (.png + .drawio), setup photo, live capture, early capture
 ```
 Build output (`Debug/`) is not committed. Open the project in STM32CubeIDE and build the CM7 target.
 
