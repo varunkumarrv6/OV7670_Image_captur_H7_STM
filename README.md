@@ -1,7 +1,6 @@
 # OV7670 Camera Capture on STM32H755 (DCMI + DMA, frames to PC over UART)
 
 Capture still images from an OV7670 camera module (no FIFO) with the STM32H755's DCMI peripheral and DMA, then send them over UART to a Python viewer on a PC.
-This is the first board of a series; ports to the STM32F446 and then the F401/F411 are planned, not started.
 
 **Status:** working on NUCLEO-H755ZI-Q. Complete 320×240 RGB565 frames and a recognisable image. Some line-length errors remain (see [Limitations](#limitations)).
 
@@ -97,10 +96,6 @@ The camera drives PCLK with fast edges. On a 15–20 cm jumper wire the edge ref
 - **Leftover pin config:** `MX_GPIO_Init` still configures PA11/PA12 for USB OTG, left over from the board template.
 - **Licence:** the tuning values come from the GPL-2.0 Linux `ov7670` driver (credited in the source).
 
-## Next steps
-- 2,000,000 baud UART (BRR = 20 from the 40 MHz USART3 kernel clock) would take ≈0.8 s per frame. Whether the ST-LINK virtual COM port accepts this rate is untested.
-- Find the cause of the short lines and fix it at the source.
-- Port to STM32F446, then F401/F411. A 153,600-byte frame does not fit in their SRAM (128 KB on F446/F411, 96 KB on F401), so they need a lower resolution or capture in strips.
 
 ## Lessons
 1. Measure instead of guessing.
